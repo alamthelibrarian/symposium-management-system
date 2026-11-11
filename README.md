@@ -13,23 +13,22 @@ A focused web application for organizing symposium presentation sequences, manag
 | Hosting | Cloudflare Pages |
 | Authentication | PBKDF2 password hashing + database-backed secure cookie sessions |
 | Authorization | Role-based access control (RBAC) |
-| Source code | GitHub |
+| Source code | GitHub (public repository) |
 
-## Implemented foundation
+## Implemented application
 
 - Astro SSR application using the Cloudflare adapter.
 - Cloudflare Pages configuration with D1 and R2 bindings.
-- D1 schema for users, sessions, events, symposium sessions, presenters, materials, links, timer state, and audit logs.
-- Seed data for 12 November, 26 November, and 3 December 2026.
-- Six presentation titles supplied for 26 November and the thesis presentation on 3 December.
+- D1 schema and seed data for 12 November, 26 November, and 3 December 2026.
 - Public event-date listing and health APIs.
 - Login, logout, session lookup, and one-time first-administrator bootstrap.
-- User administration API restricted to administrators.
-- Event/session/presenter APIs with server-side role checks.
-- PDF/PPTX upload to R2 with a 50 MB limit and authenticated delivery.
-- HTTPS presentation-link API for Canva and other hosted slide decks.
-- D1-backed timer state API, workspace polling, and a fullscreen projector display.
-- Responsive landing page, sign-in page, and operator workspace.
+- Administrator user-management screen: create accounts, assign roles, and activate/deactivate accounts.
+- Schedule administration screen: create, edit, and delete events/sessions according to role permissions.
+- Presenter management and editing in the operator workspace.
+- PDF/PPTX upload to R2 (50 MB limit) and authenticated material delivery.
+- HTTPS presentation links, including Canva links.
+- D1-backed timer state API and synchronized workspace/projector timer.
+- Fullscreen projector display, selectable by `session_id`.
 - GitHub Actions build workflow.
 
 ## Routes and APIs
@@ -41,9 +40,9 @@ A focused web application for organizing symposium presentation sequences, manag
 | `/workspace` | Protected operator/moderator workspace |
 | `/admin/schedule` | Event and session administration (administrator/operator) |
 | `/admin/users` | User and role administration (administrator only) |
-| `/display/:eventId` | Fullscreen projector view |
+| `/display/:eventId?session_id=...` | Fullscreen projector view (currently requires sign-in) |
 | `GET /api/health` | Application and D1 health |
-| `GET /api/events` | List event dates |
+| `GET /api/events` | Public event-date listing |
 | `POST /api/events` | Create an event (operator+) |
 | `/api/events/:id` | Update/delete an event |
 | `/api/sessions` | Read/create event sessions |
@@ -82,20 +81,30 @@ Apply the local D1 migrations:
 npx wrangler d1 migrations apply symposium-management-system --local
 ```
 
-## Cloudflare setup
+## Cloudflare configuration
+
+The checked-in `wrangler.jsonc` defines:
+
+- D1 binding: `DB`, database name `symposium-management-system`.
+- R2 binding: `FILES`, bucket name `symposium-management-files`.
+- Required secret: `BOOTSTRAP_SECRET`.
+- Optional variable: `SESSION_TTL_DAYS` (defaults to 7; clamped to 1–30 days).
+
+For deployment:
 
 1. Create a Cloudflare Pages project connected to this GitHub repository.
 2. Set the build command to `npm run build` and output directory to `dist`.
-3. Create a D1 database named `symposium-management-system`.
-4. Create an R2 bucket named `symposium-management-files`.
-5. Replace the D1 `database_id` placeholder in `wrangler.jsonc` with the actual database ID.
-6. Bind D1 as `DB` and R2 as `FILES` in Pages settings, or deploy using the checked-in Wrangler configuration.
-7. Add `BOOTSTRAP_SECRET` as a Cloudflare secret and optionally set `SESSION_TTL_DAYS`.
-8. Apply the migrations to the production D1 database:
+3. Create the D1 database and R2 bucket using the names above.
+4. Replace the D1 `database_id` placeholder in `wrangler.jsonc` with the actual database ID, or configure the matching binding in Pages settings.
+5. Ensure the Pages production environment has D1 binding `DB`, R2 binding `FILES`, and secret `BOOTSTRAP_SECRET`.
+6. Apply the migrations to the intended database:
    `npx wrangler d1 migrations apply symposium-management-system --remote`.
-9. Create the first administrator through the one-time bootstrap endpoint, then remove `BOOTSTRAP_SECRET`.
+7. Configure `SESSION_TTL_DAYS` if the default session lifetime is not suitable.
+8. Create the first administrator using the one-time bootstrap endpoint described below.
+9. Remove `BOOTSTRAP_SECRET` from the production environment immediately after successful bootstrap.
+10. Verify login, role restrictions, file upload/download, schedule editing, timer synchronization, and projector behavior before using the application for a live event.
 
-Do not commit real credentials, secrets, production database IDs, or presentation files.
+Do not commit credentials, real secrets, production database IDs, or presentation files. Keep development, staging, and production databases/buckets and secrets separate. The repository is public; production data and credentials must remain in Cloudflare.
 
 ## Initial administrator bootstrap
 
@@ -103,22 +112,24 @@ Send a one-time POST request to `/api/auth/bootstrap` with JSON fields `secret`,
 
 ## Timer behavior
 
-Timer state is persisted in D1. The workspace and projector view poll the API to synchronize the current phase, presenter, and countdown across signed-in devices. The browser calculates the displayed countdown from a shared end timestamp; D1 stores the authoritative state snapshot. A stable network connection is required for prompt synchronization.
+Timer state is persisted in D1 and synchronized between the workspace and projector view. The timer is currently stored per event, not independently per session. Phase transitions are operator-controlled; automatic phase advancement and audible alerts require further implementation and testing. A stable network connection is required for prompt synchronization.
 
-## Current limitations / next milestones
+## Production readiness status
 
-- The user-management API exists; a dedicated user administration screen is still pending.
-- Event creation API exists; event editing and deletion UI are pending.
-- Session creation API exists; session editing/deletion UI is pending.
-- Presenter editing is API-supported; a polished edit form is pending.
-- Projector view currently follows the first session of the selected event.
-- Timer transitions are manually controlled; automatic phase advancement and audible alerts need additional implementation/testing.
-- Production deployment, Cloudflare bindings, migration application, and first-admin bootstrap still need to be configured in the Cloudflare account.
-- Automated build is run by GitHub Actions; runtime integration tests against live D1/R2 are not part of CI yet.
+The latest known GitHub Actions build passed. This confirms the application compiles; it does not confirm that production Cloudflare resources are configured or that live D1/R2 workflows have passed end-to-end tests.
+
+Still required before production use:
+
+- Create/configure production D1 and R2 resources and apply migrations.
+- Configure the Cloudflare Pages production bindings and secrets.
+- Perform the one-time administrator bootstrap and remove its secret.
+- Complete security review, especially login abuse protection and upload validation.
+- Run end-to-end tests against the actual Cloudflare deployment.
+- Confirm backup and recovery procedures for D1 and R2.
 
 ## Event format
 
-Default event time: 13:00–15:30 WIB (Asia/Jakarta). Presenter allocation: 10 minutes presentation, 8 minutes Q&A, and 2 minutes transition.
+Default event time: 13:00–15:30 WIB (Asia/Jakarta). Each presenter has 20 minutes: 10 minutes presentation, 8 minutes Q&A, and 2 minutes transition.
 
 ## Scope
 
