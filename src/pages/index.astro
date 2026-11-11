@@ -30,15 +30,23 @@ const appName = Astro.locals.runtime.env.APP_NAME || "Symposium Management Syste
     </main>
     <footer>Symposium Management System <span>·</span> Built for session operations</footer>
     <script>
-      const list = document.querySelector("#event-list");
-      const count = document.querySelector("#event-count");
-      const dateLabel = (value) => new Intl.DateTimeFormat("en-GB", { day: "2-digit", month: "long", year: "numeric", timeZone: "UTC" }).format(new Date(value + "T00:00:00Z"));
-      fetch("/api/events").then((response) => { if (!response.ok) throw new Error("Schedule unavailable"); return response.json(); })
-        .then(({ events }) => {
+      type EventItem = { event_date: string; title: string; start_time: string; end_time: string; status: string };
+      type EventsResponse = { events: EventItem[] };
+      const list = document.querySelector<HTMLDivElement>("#event-list");
+      const count = document.querySelector<HTMLSpanElement>("#event-count");
+      const dateLabel = (value: string) => new Intl.DateTimeFormat("en-GB", { day: "2-digit", month: "long", year: "numeric", timeZone: "UTC" }).format(new Date(value + "T00:00:00Z"));
+      if (list && count) {
+        fetch("/api/events").then(async (response): Promise<EventsResponse> => {
+          if (!response.ok) throw new Error("Schedule unavailable");
+          return await response.json() as EventsResponse;
+        }).then(({ events }) => {
           count.textContent = events.length + " scheduled dates";
-          list.innerHTML = events.map((event) => `<article class="event-card"><div class="event-date">${dateLabel(event.event_date)}</div><h3>${event.title}</h3><p>${event.start_time}–${event.end_time} WIB</p><span class="status">${event.status}</span></article>`).join("") || "<p>No dates have been scheduled.</p>";
-        })
-        .catch(() => { count.textContent = "Schedule unavailable"; list.innerHTML = "<p>Connect and initialize the D1 database to display event dates.</p>"; });
+          list.innerHTML = events.map((event: EventItem) => `<article class="event-card"><div class="event-date">${dateLabel(event.event_date)}</div><h3>${event.title}</h3><p>${event.start_time}–${event.end_time} WIB</p><span class="status">${event.status}</span></article>`).join("") || "<p>No dates have been scheduled.</p>";
+        }).catch(() => {
+          count.textContent = "Schedule unavailable";
+          list.innerHTML = "<p>Connect and initialize the D1 database to display event dates.</p>";
+        });
+      }
     </script>
     <style>
       :root{color-scheme:dark;--bg:#0b1120;--panel:#131e30;--line:#27364d;--muted:#9aabc2;--text:#eef4fb;--accent:#53c7a5}
