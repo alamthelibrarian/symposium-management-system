@@ -1,5 +1,5 @@
 ---
-import { getSessionUser } from "../lib/auth";
+import { getSessionUser } from "../../lib/auth";
 export const prerender = false;
 const user = await getSessionUser(Astro.locals.runtime.env.DB, Astro.request);
 if (!user) return Astro.redirect("/login");
