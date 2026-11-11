@@ -21,11 +21,11 @@ A focused web application for organizing symposium presentation sequences, manag
 - Cloudflare Pages configuration with D1 and R2 bindings.
 - D1 schema and seed data for 12 November, 26 November, and 3 December 2026.
 - Public event-date listing and health APIs.
-- Login, logout, session lookup, and one-time first-administrator bootstrap.
+- Login, logout, session lookup, persistent throttling after 8 unsuccessful attempts per email/IP within a 15-minute window, and a race-safe one-time first-administrator bootstrap.
 - Administrator user-management screen: create accounts, assign roles, and activate/deactivate accounts.
 - Schedule administration screen: create, edit, and delete events/sessions according to role permissions.
 - Presenter management and editing in the operator workspace.
-- PDF/PPTX upload to R2 (50 MB limit) and authenticated material delivery.
+- PDF/PPTX upload to R2 (50 MB limit), filename sanitization, basic content-signature checks, and authenticated material delivery. PPTX validation checks the ZIP signature, not the full internal OOXML package structure.
 - HTTPS presentation links, including Canva links.
 - D1-backed timer state API and synchronized workspace/projector timer.
 - Fullscreen projector display, selectable by `session_id`.
@@ -123,7 +123,7 @@ Still required before production use:
 - Create/configure production D1 and R2 resources and apply migrations.
 - Configure the Cloudflare Pages production bindings and secrets.
 - Perform the one-time administrator bootstrap and remove its secret.
-- Complete security review, especially login abuse protection and upload validation.
+- Review and test login throttling and upload validation in the deployed Cloudflare environment; consider Cloudflare WAF/rate-limiting rules as an additional edge layer.
 - Run end-to-end tests against the actual Cloudflare deployment.
 - Confirm backup and recovery procedures for D1 and R2.
 
