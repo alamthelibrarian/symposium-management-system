@@ -18,7 +18,7 @@ export const POST: APIRoute = async ({ locals, request }) => {
   const password = String(body.password || "");
   if (!email || !password || password.length > 256) return Response.json({ error: "Email and password are required." }, { status: 400 });
 
-  const ipAddress = request.headers.get("CF-Connecting-IP") || "unknown";
+  const ipAddress = request.headers.get("CF-Connecting-IP") || request.headers.get("X-Forwarded-For")?.split(",")[0]?.trim() || "unknown";
   const db = locals.runtime.env.DB;
   if (await isLoginRateLimited(db, email, ipAddress)) {
     return Response.json({ error: "Too many unsuccessful sign-in attempts. Try again in 15 minutes." }, {
