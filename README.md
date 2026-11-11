@@ -21,7 +21,7 @@ A focused web application for organizing symposium presentation sequences, manag
 - Cloudflare Pages configuration with D1 and R2 bindings.
 - D1 schema and seed data for 12 November, 26 November, and 3 December 2026.
 - Public event-date listing and health APIs.
-- Login, logout, session lookup, persistent throttling after 8 unsuccessful attempts per email/IP within a 15-minute window, and a race-safe one-time first-administrator bootstrap.
+- Login, logout, session lookup, persistent throttling after 8 unsuccessful attempts per email or 30 per source IP within a 15-minute window, and a race-safe one-time first-administrator bootstrap.
 - Administrator user-management screen: create accounts, assign roles, and activate/deactivate accounts.
 - Schedule administration screen: create, edit, and delete events/sessions according to role permissions.
 - Presenter management and editing in the operator workspace.
