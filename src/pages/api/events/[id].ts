@@ -1,5 +1,5 @@
 import type { APIRoute } from "astro";
-import { getSessionUser, hasRole, writeAudit } from "../../../../lib/auth";
+import { getSessionUser, hasRole, writeAudit } from "../../../lib/auth";
 export const prerender = false;
 
 export const PATCH: APIRoute = async ({ locals, request, params }) => {
