@@ -16,15 +16,15 @@ export const POST: APIRoute = async ({ locals, request }) => {
   const db = locals.runtime.env.DB;
   const user = await getSessionUser(db, request);
   if (!user || !hasRole(user.role, ["operator"])) return Response.json({ error: "Forbidden." }, { status: 403 });
-  let body: { event_id?: string; title?: string; sort_order?: number };
+  let body: { event_id?: string; title?: string; sort_order?: number; start_time?: string; end_time?: string };
   try { body = await request.json(); } catch { return Response.json({ error: "Invalid request body." }, { status: 400 }); }
   const eventId = String(body.event_id || "");
-  const title = String(body.title || "").trim();
+  const title = String(body.title || "").trim();\n  const start = body.start_time ? String(body.start_time) : null;\n  const end = body.end_time ? String(body.end_time) : null;
   const event = await db.prepare("SELECT id FROM events WHERE id = ?").bind(eventId).first();
-  if (!event || !title) return Response.json({ error: "A valid event_id and title are required." }, { status: 400 });
+  if (!event || !title || (start && !/^([01]\\d|2[0-3]):[0-5]\\d$/.test(start)) || (end && !/^([01]\\d|2[0-3]):[0-5]\\d$/.test(end)) || (start && end && end <= start)) return Response.json({ error: "A valid event, title, and optional session times are required." }, { status: 400 });
   const id = crypto.randomUUID();
-  await db.prepare("INSERT INTO symposium_sessions (id, event_id, title, sort_order) VALUES (?, ?, ?, ?)")
-    .bind(id, eventId, title, Number.isInteger(body.sort_order) ? body.sort_order : 0).run();
+  await db.prepare("INSERT INTO symposium_sessions (id, event_id, title, sort_order, start_time, end_time) VALUES (?, ?, ?, ?, ?, ?)")
+    .bind(id, eventId, title, Number.isInteger(body.sort_order) ? body.sort_order : 0, start, end).run();
   await writeAudit(db, user.id, "create", "session", id);
   return Response.json({ id, event_id: eventId, title }, { status: 201 });
 };
