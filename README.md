@@ -85,9 +85,9 @@ npx wrangler d1 migrations apply symposium-management-system --local
 
 The checked-in `wrangler.jsonc` defines three isolated resource sets:
 
-- Local development: D1 `symposium-management-system` and R2 `symposium-management-files`.
-- Pages preview (use as staging): D1 `symposium-management-preview` and R2 `symposium-management-preview-files`.
-- Pages production: D1 `symposium-management-production` and R2 `symposium-management-production-files`.
+- Local development: D1 `symposium-management-system` and R2 `symposium-management-system`.
+- Pages preview (use as staging): D1 `symposium-management-preview` and R2 `symposium-management-preview`.
+- Pages production: D1 `symposium-management-system` and R2 `symposium-management-system-files`.
 
 All environments use the same binding names (`DB` and `FILES`) so application code remains unchanged. The preview and production D1 IDs in the file are valid-format placeholders; replace them with the actual IDs before deployment. The local all-zero ID is for local development only. Configure `BOOTSTRAP_SECRET` separately as a secret in both preview and production; do not put it in `vars`. `SESSION_TTL_DAYS` is optional (defaults to 7; clamped to 1–30 days).
 
@@ -101,7 +101,7 @@ For deployment:
 6. Configure a separate `BOOTSTRAP_SECRET` secret for each Pages environment. Do not place secrets in `vars` or commit them.
 7. Apply migrations separately to preview and production:
    - `npx wrangler d1 migrations apply symposium-management-preview --remote --env preview`
-   - `npx wrangler d1 migrations apply symposium-management-production --remote --env production`
+   - `npx wrangler d1 migrations apply symposium-management-system --remote --env production`
 8. Configure `SESSION_TTL_DAYS` if the default session lifetime is not suitable.
 9. Deploy a preview first and test it. Only then deploy the production branch.
 10. Create the first administrator in each environment using its one-time bootstrap endpoint, then remove that environment's `BOOTSTRAP_SECRET` immediately.
