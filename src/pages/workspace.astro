@@ -61,6 +61,7 @@ async function loadSessions(){
  sessions=result.sessions||[];
  $("session-select").innerHTML=sessions.map(s=>'<option value="'+esc(s.id)+'">'+esc(s.title)+'</option>').join("")||'<option value="">No sessions</option>';
  selectedSession=sessions[0]?.id||null;
+ $("projector-link").href="/display/"+encodeURIComponent(selectedEvent)+(selectedSession?"?session_id="+encodeURIComponent(selectedSession):"");
  await loadPresenters();await loadTimer();
 }
 async function loadEvents(){
