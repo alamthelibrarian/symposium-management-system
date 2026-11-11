@@ -98,7 +98,9 @@ export function hasRole(role: AppRole, allowed: AppRole[]): boolean {
 }
 
 async function loginRateKeys(email: string, ipAddress: string): Promise<string[]> {
-  return Promise.all([digest(`email:${email}`), digest(`ip:${ipAddress}`)]);
+  const keys = [digest(`email:${email}`)];
+  if (ipAddress !== "unknown") keys.push(digest(`ip:${ipAddress}`));
+  return Promise.all(keys);
 }
 
 export async function isLoginRateLimited(db: D1Database, email: string, ipAddress: string): Promise<boolean> {
