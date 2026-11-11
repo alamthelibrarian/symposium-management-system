@@ -15,7 +15,7 @@ const eventId = Astro.params.id || "";
   <footer><span id="connection">Connecting to live timer…</span><button id="fullscreen">Enter fullscreen</button></footer>
 </main>
 <script define:vars={{eventId}}>
-const $=id=>document.getElementById(id);let eventData=null,sessionId=null,presenters=[],timer={phaseIndex:-1,currentIndex:-1,remaining:600,duration:600,running:false,endsAt:null};
+const $=id=>document.getElementById(id);const requestedSession=new URLSearchParams(location.search).get("session_id");let eventData=null,sessionId=null,presenters=[],timer={phaseIndex:-1,currentIndex:-1,remaining:600,duration:600,running:false,endsAt:null};
 const phases=[{name:"Presentation"},{name:"Q&A"},{name:"Transition"}];
 async function get(url){const r=await fetch(url);const d=await r.json();if(!r.ok)throw new Error(d.error||"Request failed");return d}
 function remaining(){return timer.running&&timer.endsAt?Math.max(0,Math.ceil((timer.endsAt-Date.now())/1000)):Math.max(0,timer.remaining||0)}
@@ -32,7 +32,7 @@ function render(){
 async function refresh(){
  const [ev,sess]=await Promise.all([get("/api/events"),get("/api/sessions?event_id="+encodeURIComponent(eventId))]);
  eventData=ev.events.find(e=>e.id===eventId);if(!eventData)throw new Error("Event not found");
- sessionId=sess.sessions[0]?.id;if(!sessionId)throw new Error("No session configured");
+ sessionId=(sess.sessions.find(s=>s.id===requestedSession)||sess.sessions[0])?.id;if(!sessionId)throw new Error("No session configured");
  const people=await get("/api/presenters?session_id="+encodeURIComponent(sessionId));presenters=people.presenters||[];
  const state=await get("/api/events/"+encodeURIComponent(eventId)+"/timer");if(state.state)timer={...timer,...state.state};
  $("event-date").textContent=new Intl.DateTimeFormat("en-GB",{day:"2-digit",month:"long",year:"numeric",timeZone:"UTC"}).format(new Date(eventData.event_date+"T00:00:00Z"))+" · "+eventData.start_time+"–"+eventData.end_time+" WIB";
