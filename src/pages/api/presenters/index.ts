@@ -9,11 +9,12 @@ export const GET: APIRoute = async ({ locals, request }) => {
   if (!sessionId) return Response.json({ error: "session_id is required." }, { status: 400 });
   const { results } = await locals.runtime.env.DB.prepare(`
     SELECT p.id, p.session_id, p.display_name, p.affiliation, p.presentation_title, p.sort_order,
-      m.id AS material_id, m.original_name AS material_name, m.content_type AS material_type,
-      l.id AS link_id, l.url AS presentation_url
+      (SELECT m.id FROM materials m WHERE m.presenter_id = p.id ORDER BY m.created_at DESC LIMIT 1) AS material_id,
+      (SELECT m.original_name FROM materials m WHERE m.presenter_id = p.id ORDER BY m.created_at DESC LIMIT 1) AS material_name,
+      (SELECT m.content_type FROM materials m WHERE m.presenter_id = p.id ORDER BY m.created_at DESC LIMIT 1) AS material_type,
+      (SELECT l.id FROM presentation_links l WHERE l.presenter_id = p.id ORDER BY l.created_at DESC LIMIT 1) AS link_id,
+      (SELECT l.url FROM presentation_links l WHERE l.presenter_id = p.id ORDER BY l.created_at DESC LIMIT 1) AS presentation_url
     FROM presenters p
-    LEFT JOIN materials m ON m.presenter_id = p.id
-    LEFT JOIN presentation_links l ON l.presenter_id = p.id
     WHERE p.session_id = ? ORDER BY p.sort_order ASC
   `).bind(sessionId).all();
   return Response.json({ presenters: results });
