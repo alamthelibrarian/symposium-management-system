@@ -23,6 +23,6 @@ export const POST: APIRoute = async ({ locals, request }) => {
   await writeAudit(locals.runtime.env.DB, user.id, "login", "session");
   const secure = new URL(request.url).protocol === "https:";
   return Response.json({ authenticated: true, user: { id: user.id, email: user.email, display_name: user.display_name, role: user.role } }, {
-    headers: { "Set-Cookie": sessionCookie(token, secure) }
+    headers: { "Set-Cookie": sessionCookie(token, secure, ttl) }
   });
 };
