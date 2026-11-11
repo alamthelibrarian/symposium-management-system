@@ -19,12 +19,20 @@ export const PATCH: APIRoute = async ({ locals, request, params }) => {
   if (body.is_active !== undefined && typeof body.is_active !== "boolean") return Response.json({ error: "is_active must be a boolean." }, { status: 400 });
   const nextRole = role ?? target.role;
   const nextActive = body.is_active === undefined ? Number(target.is_active) : body.is_active ? 1 : 0;
-  if (target.role === "administrator" && Number(target.is_active) === 1 && (nextRole !== "administrator" || nextActive === 0)) {
-    const count = await db.prepare("SELECT COUNT(*) AS total FROM users WHERE role = 'administrator' AND is_active = 1").first<{ total: number }>();
-    if (Number(count?.total || 0) <= 1) return Response.json({ error: "The last active administrator cannot be demoted or deactivated." }, { status: 409 });
+  const update = await db.prepare(`
+    UPDATE users
+    SET display_name = COALESCE(?, display_name),
+        role = COALESCE(?, role),
+        is_active = COALESCE(?, is_active),
+        updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
+    WHERE id = ? AND (
+      role != 'administrator' OR is_active != 1 OR (? = 'administrator' AND ? = 1) OR
+      (SELECT COUNT(*) FROM users WHERE role = 'administrator' AND is_active = 1) > 1
+    )
+  `).bind(name, role, body.is_active === undefined ? null : nextActive, targetId, nextRole, nextActive).run();
+  if (!update.meta || Number(update.meta.changes || 0) !== 1) {
+    return Response.json({ error: "The last active administrator cannot be demoted or deactivated." }, { status: 409 });
   }
-  await db.prepare("UPDATE users SET display_name = COALESCE(?, display_name), role = COALESCE(?, role), is_active = COALESCE(?, is_active), updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now') WHERE id = ?")
-    .bind(name, role, body.is_active === undefined ? null : nextActive, targetId).run();
   await writeAudit(db, actor.id, "update", "user", targetId);
   return Response.json({ updated: true });
 };
