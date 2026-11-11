@@ -41,10 +41,34 @@ const appName = Astro.locals.runtime.env.APP_NAME || "Symposium Management Syste
           return await response.json() as EventsResponse;
         }).then(({ events }) => {
           count.textContent = events.length + " scheduled dates";
-          list.innerHTML = events.map((event: EventItem) => `<article class="event-card"><div class="event-date">${dateLabel(event.event_date)}</div><h3>${event.title}</h3><p>${event.start_time}–${event.end_time} WIB</p><span class="status">${event.status}</span></article>`).join("") || "<p>No dates have been scheduled.</p>";
+          list.replaceChildren();
+          if (!events.length) {
+            const empty = document.createElement("p");
+            empty.textContent = "No dates have been scheduled.";
+            list.append(empty);
+            return;
+          }
+          for (const event of events) {
+            const card = document.createElement("article");
+            card.className = "event-card";
+            const date = document.createElement("div");
+            date.className = "event-date";
+            date.textContent = dateLabel(event.event_date);
+            const title = document.createElement("h3");
+            title.textContent = event.title;
+            const time = document.createElement("p");
+            time.textContent = event.start_time + "–" + event.end_time + " WIB";
+            const status = document.createElement("span");
+            status.className = "status";
+            status.textContent = event.status;
+            card.append(date, title, time, status);
+            list.append(card);
+          }
         }).catch(() => {
           count.textContent = "Schedule unavailable";
-          list.innerHTML = "<p>Connect and initialize the D1 database to display event dates.</p>";
+          const error = document.createElement("p");
+          error.textContent = "Connect and initialize the D1 database to display event dates.";
+          list.replaceChildren(error);
         });
       }
     </script>
