@@ -44,7 +44,8 @@ A focused web application for organizing symposium presentation sequences, manag
 | `/display/:eventId` | Fullscreen projector view |
 | `GET /api/health` | Application and D1 health |
 | `GET /api/events` | List event dates |
-| `POST /api/events` | Create an event (operator+) |\n| `/api/events/:id` | Update/delete an event |
+| `POST /api/events` | Create an event (operator+) |
+| `/api/events/:id` | Update/delete an event |
 | `/api/sessions` | Read/create event sessions |
 | `/api/sessions/:id` | Update/delete a session |
 | `/api/presenters` | Read/create presenters |
