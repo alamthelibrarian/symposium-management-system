@@ -87,7 +87,7 @@ The checked-in `wrangler.jsonc` defines three isolated resource sets:
 
 - Local development: D1 `symposium-management-system` and R2 `symposium-management-system`.
 - Pages preview (use as staging): D1 `symposium-management-preview` and R2 `symposium-management-preview`.
-- Pages production: D1 `symposium-management-system` and R2 `symposium-management-system-files`.
+- Pages production: D1 `symposium-management-system` and R2 `symposium-management-system`.
 
 All environments use the same binding names (`DB` and `FILES`) so application code remains unchanged. The preview and production D1 IDs in the file are valid-format placeholders; replace them with the actual IDs before deployment. The local all-zero ID is for local development only. Configure `BOOTSTRAP_SECRET` separately as a secret in both preview and production; do not put it in `vars`. `SESSION_TTL_DAYS` is optional (defaults to 7; clamped to 1–30 days).
 
