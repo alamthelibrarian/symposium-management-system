@@ -18,6 +18,24 @@ export const PUT: APIRoute = async ({ locals, request, params }) => {
   if (!event) return Response.json({ error: "Event not found." }, { status: 404 });
   let state: Record<string, unknown>;
   try { state = await request.json(); } catch { return Response.json({ error: "Invalid timer state." }, { status: 400 }); }
+  const phaseIndex = state.phaseIndex;
+  const currentIndex = state.currentIndex;
+  const remaining = state.remaining;
+  const duration = state.duration;
+  const running = state.running;
+  const endsAt = state.endsAt;
+  const validNumber = (value: unknown): value is number => typeof value === "number" && Number.isFinite(value);
+  if (
+    !Number.isInteger(phaseIndex) || Number(phaseIndex) < -1 || Number(phaseIndex) > 3 ||
+    !Number.isInteger(currentIndex) || Number(currentIndex) < -1 || Number(currentIndex) > 99 ||
+    !validNumber(remaining) || remaining < 0 || remaining > 3600 ||
+    !validNumber(duration) || duration < 1 || duration > 3600 ||
+    typeof running !== "boolean" ||
+    !(endsAt === null || validNumber(endsAt)) ||
+    (running && !validNumber(endsAt))
+  ) {
+    return Response.json({ error: "Timer state contains invalid phase, presenter, duration, or running values." }, { status: 400 });
+  }
   const encoded = JSON.stringify(state);
   if (encoded.length > 8000) return Response.json({ error: "Timer state is too large." }, { status: 413 });
   await db.prepare(`INSERT INTO timer_states (event_id, state_json, updated_by) VALUES (?, ?, ?)
