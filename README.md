@@ -83,26 +83,29 @@ npx wrangler d1 migrations apply symposium-management-system --local
 
 ## Cloudflare configuration
 
-The checked-in `wrangler.jsonc` defines:
+The checked-in `wrangler.jsonc` defines three isolated resource sets:
 
-- D1 binding: `DB`, database name `symposium-management-system`.
-- R2 binding: `FILES`, bucket name `symposium-management-files`.
-- Required secret: `BOOTSTRAP_SECRET`.
-- Optional variable: `SESSION_TTL_DAYS` (defaults to 7; clamped to 1–30 days).
+- Local development: D1 `symposium-management-system` and R2 `symposium-management-files`.
+- Pages preview (use as staging): D1 `symposium-management-preview` and R2 `symposium-management-preview-files`.
+- Pages production: D1 `symposium-management-production` and R2 `symposium-management-production-files`.
+
+All environments use the same binding names (`DB` and `FILES`) so application code remains unchanged. The preview and production D1 IDs in the file are valid-format placeholders; replace them with the actual IDs before deployment. The local all-zero ID is for local development only. Configure `BOOTSTRAP_SECRET` separately as a secret in both preview and production; do not put it in `vars`. `SESSION_TTL_DAYS` is optional (defaults to 7; clamped to 1–30 days).
 
 For deployment:
 
-1. Create a Cloudflare Pages project connected to this GitHub repository.
+1. Create a Cloudflare Pages project connected to this GitHub repository, with `main` as the production branch.
 2. Set the build command to `npm run build` and output directory to `dist`.
-3. Create the D1 database and R2 bucket using the names above.
-4. Replace the all-zero D1 `database_id` placeholder in `wrangler.jsonc` with the actual database ID before deployment, or configure the matching binding in Pages settings. The placeholder is only for local development and must never be used for a live deployment.
-5. Ensure the Pages production environment has D1 binding `DB`, R2 binding `FILES`, and secret `BOOTSTRAP_SECRET`.
-6. Apply the migrations to the intended database:
-   `npx wrangler d1 migrations apply symposium-management-system --remote`.
-7. Configure `SESSION_TTL_DAYS` if the default session lifetime is not suitable.
-8. Create the first administrator using the one-time bootstrap endpoint described below.
-9. Remove `BOOTSTRAP_SECRET` from the production environment immediately after successful bootstrap.
-10. Verify login, role restrictions, file upload/download, schedule editing, timer synchronization, and projector behavior before using the application for a live event.
+3. Create four Cloudflare resources: the preview D1 database and R2 bucket, plus the production D1 database and R2 bucket, using the exact names above.
+4. Replace the preview and production D1 placeholder IDs in `wrangler.jsonc` with the real IDs. Keep the local all-zero ID for local development only.
+5. The Wrangler file is the source of truth for Pages bindings. It defines `env.preview` for preview deployments (staging) and `env.production` for production. Verify the Cloudflare project configuration matches this file before the first deployment.
+6. Configure a separate `BOOTSTRAP_SECRET` secret for each Pages environment. Do not place secrets in `vars` or commit them.
+7. Apply migrations separately to preview and production:
+   - `npx wrangler d1 migrations apply symposium-management-preview --remote --env preview`
+   - `npx wrangler d1 migrations apply symposium-management-production --remote --env production`
+8. Configure `SESSION_TTL_DAYS` if the default session lifetime is not suitable.
+9. Deploy a preview first and test it. Only then deploy the production branch.
+10. Create the first administrator in each environment using its one-time bootstrap endpoint, then remove that environment's `BOOTSTRAP_SECRET` immediately.
+11. Verify login, role restrictions, file upload/download, schedule editing, timer synchronization, and projector behavior before using the application for a live event.
 
 Do not commit credentials, real secrets, production database IDs, or presentation files. Keep development, staging, and production databases/buckets and secrets separate. The repository is public; production data and credentials must remain in Cloudflare.
 
