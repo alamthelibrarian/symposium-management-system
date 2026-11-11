@@ -31,6 +31,9 @@ export const DELETE: APIRoute = async ({ locals, request, params }) => {
   const id = params.id || "";
   const row = await db.prepare("SELECT id FROM symposium_sessions WHERE id = ?").bind(id).first();
   if (!row) return Response.json({ error: "Session not found." }, { status: 404 });
+  const { results } = await db.prepare("SELECT m.object_key FROM materials m JOIN presenters p ON p.id = m.presenter_id WHERE p.session_id = ?").bind(id).all<{ object_key: string }>();
+  try { await Promise.all(results.map((item) => locals.runtime.env.FILES.delete(item.object_key))); }
+  catch { return Response.json({ error: "Could not remove stored presentation files. No session data was deleted." }, { status: 502 }); }
   await db.prepare("DELETE FROM symposium_sessions WHERE id = ?").bind(id).run();
   await writeAudit(db, user.id, "delete", "session", id);
   return new Response(null, { status: 204 });
