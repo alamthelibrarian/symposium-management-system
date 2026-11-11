@@ -12,7 +12,7 @@ const canModerate = ["administrator", "operator", "moderator"].includes(user.rol
 <body>
 <header class="topbar"><a class="brand" href="/">SMS<span>.</span></a><div class="identity"><strong>Symposium workspace</strong><small>{user.display_name} · {user.role}</small></div><button id="logout" class="quiet">Sign out</button></header>
 <main>
-  <div class="page-heading"><div><p class="eyebrow">SESSION OPERATIONS</p><h1>Control room</h1></div><div class="heading-actions"><span class="live"><i></i> Connected to workspace</span><a id="projector-link" class="projector-link" href="#" target="_blank" rel="noopener">Projector display ↗</a>{user.role === "administrator" && <a class="projector-link" href="/admin/users">User administration</a>}</div></div>
+  <div class="page-heading"><div><p class="eyebrow">SESSION OPERATIONS</p><h1>Control room</h1></div><div class="heading-actions"><span class="live"><i></i> Connected to workspace</span><a id="projector-link" class="projector-link" href="#" target="_blank" rel="noopener">Projector display ↗</a>{user.role === "administrator" && <a class="projector-link" href="/admin/users">User administration</a>}{canEdit && <a class="projector-link" href="/admin/schedule">Schedule administration</a>}</div></div>
   <section class="toolbar panel"><label>Event date<select id="event-select"><option>Loading events…</option></select></label><label>Session<select id="session-select"><option>Select an event</option></select></label><span id="event-time" class="muted"></span></section>
   <div class="columns">
     <section class="panel sequence">
