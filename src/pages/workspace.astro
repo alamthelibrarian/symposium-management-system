@@ -88,7 +88,7 @@ async function loadTimer(){
 function setPhase(index){timer.running=false;timer.phaseIndex=Math.max(-1,Math.min(3,index));timer.duration=index<0?600:index>2?1200:phases[index].seconds;timer.remaining=timer.duration;timer.endsAt=null;renderTimer();saveTimer()}
 function selectPresenter(index){if(!presenters.length)return;timer.currentIndex=Math.max(0,Math.min(presenters.length-1,index));setPhase(0)}
 $("event-select").addEventListener("change",async e=>{selectedEvent=e.target.value;const event=events.find(x=>x.id===selectedEvent);$("event-time").textContent=event?event.start_time+"–"+event.end_time+" WIB":"";$("projector-link").href="/display/"+encodeURIComponent(selectedEvent);await loadSessions()});
-$("session-select").addEventListener("change",async e=>{selectedSession=e.target.value;await loadPresenters();timer.currentIndex=-1;await loadTimer()});
+$("session-select").addEventListener("change",async e=>{selectedSession=e.target.value;$("projector-link").href="/display/"+encodeURIComponent(selectedEvent)+(selectedSession?"?session_id="+encodeURIComponent(selectedSession):"");await loadPresenters();timer.currentIndex=-1;await loadTimer()});
 $("presenter-list").addEventListener("click",async e=>{
  const b=e.target.closest("button");if(!b)return;const i=Number(b.dataset.select??b.dataset.up??b.dataset.down??b.dataset.delete??b.dataset.link??b.dataset.unlink??b.dataset.edit);if(!Number.isInteger(i))return;
  if(b.dataset.select!==undefined){selectPresenter(i);return}
