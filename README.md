@@ -89,14 +89,14 @@ The checked-in `wrangler.jsonc` defines three isolated resource sets:
 - Pages preview (use as staging): D1 `symposium-management-preview` and R2 `symposium-management-preview`.
 - Pages production: D1 `symposium-management-system` and R2 `symposium-management-system`.
 
-All environments use the same binding names (`DB` and `FILES`) so application code remains unchanged. The preview and production D1 IDs in the file are valid-format placeholders; replace them with the actual IDs before deployment. The local all-zero ID is for local development only. Configure `BOOTSTRAP_SECRET` separately as a secret in both preview and production; do not put it in `vars`. `SESSION_TTL_DAYS` is optional (defaults to 7; clamped to 1–30 days).
+All environments use the same binding names (`DB` and `FILES`) so application code remains unchanged. The preview and production D1 IDs in `wrangler.jsonc` have been configured with the actual Cloudflare database IDs. The local all-zero ID is only a local-development placeholder and must not be used for a remote deployment. Configure `BOOTSTRAP_SECRET` separately as a secret in both preview and production; do not put it in `vars`. `SESSION_TTL_DAYS` is optional (defaults to 7; clamped to 1–30 days).
 
 For deployment:
 
 1. Create a Cloudflare Pages project connected to this GitHub repository, with `main` as the production branch.
 2. Set the build command to `npm run build` and output directory to `dist`.
 3. Create four Cloudflare resources: the preview D1 database and R2 bucket, plus the production D1 database and R2 bucket, using the exact names above.
-4. Replace the preview and production D1 placeholder IDs in `wrangler.jsonc` with the real IDs. Keep the local all-zero ID for local development only.
+4. The preview and production D1 IDs are already configured in `wrangler.jsonc`. Keep the local all-zero ID for local development only.
 5. The Wrangler file is the source of truth for Pages bindings. It defines `env.preview` for preview deployments (staging) and `env.production` for production. Verify the Cloudflare project configuration matches this file before the first deployment.
 6. Configure a separate `BOOTSTRAP_SECRET` secret for each Pages environment. Do not place secrets in `vars` or commit them.
 7. Apply migrations separately to preview and production:
