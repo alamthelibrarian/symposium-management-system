@@ -97,17 +97,20 @@ export function hasRole(role: AppRole, allowed: AppRole[]): boolean {
   return hierarchy[role] >= Math.min(...allowed.map((item) => hierarchy[item]));
 }
 
-async function loginRateKeys(email: string, ipAddress: string): Promise<string[]> {
-  const keys = [digest(`email:${email}`)];
-  if (ipAddress !== "unknown") keys.push(digest(`ip:${ipAddress}`));
-  return Promise.all(keys);
+async function loginRateKeys(email: string, ipAddress: string): Promise<Array<{ hash: string; limit: number }>> {
+  const keys: Array<{ hash: string; limit: number }> = [
+    { hash: await digest(`email:${email}`), limit: LOGIN_MAX_ATTEMPTS }
+  ];
+  // A higher IP threshold avoids locking out an entire shared campus/office network.
+  if (ipAddress !== "unknown") keys.push({ hash: await digest(`ip:${ipAddress}`), limit: 30 });
+  return keys;
 }
 
 export async function isLoginRateLimited(db: D1Database, email: string, ipAddress: string): Promise<boolean> {
   const keys = await loginRateKeys(email, ipAddress);
   for (const key of keys) {
     const row = await db.prepare("SELECT blocked_until FROM login_rate_limits WHERE key_hash = ? AND blocked_until > ?")
-      .bind(key, new Date().toISOString()).first();
+      .bind(key.hash, new Date().toISOString()).first();
     if (row) return true;
   }
   return false;
@@ -130,17 +133,17 @@ export async function recordLoginFailure(db: D1Database, email: string, ipAddres
         blocked_until = CASE
           WHEN login_rate_limits.window_started_at <= strftime('%Y-%m-%dT%H:%M:%fZ', 'now', '-${LOGIN_WINDOW_MINUTES} minutes')
           THEN NULL
-          WHEN login_rate_limits.attempts >= ${LOGIN_MAX_ATTEMPTS - 1}
+          WHEN login_rate_limits.attempts >= ?
           THEN strftime('%Y-%m-%dT%H:%M:%fZ', 'now', '+${LOGIN_WINDOW_MINUTES} minutes')
           ELSE login_rate_limits.blocked_until END
-    `).bind(key).run();
+    `).bind(key.hash, key.limit - 1).run();
   }
 }
 
 export async function clearLoginFailures(db: D1Database, email: string, ipAddress: string): Promise<void> {
   const keys = await loginRateKeys(email, ipAddress);
   for (const key of keys) {
-    await db.prepare("DELETE FROM login_rate_limits WHERE key_hash = ?").bind(key).run();
+    await db.prepare("DELETE FROM login_rate_limits WHERE key_hash = ?").bind(key.hash).run();
   }
 }
 
