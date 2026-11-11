@@ -3,12 +3,18 @@ import { getSessionUser, hasRole, writeAudit } from "../../../lib/auth";
 
 export const prerender = false;
 
-export const GET: APIRoute = async ({ locals }) => {
-  const { results } = await locals.runtime.env.DB.prepare(`
+export const GET: APIRoute = async ({ locals, request }) => {
+  const db = locals.runtime.env.DB;
+  const user = await getSessionUser(db, request);
+  const canViewDrafts = Boolean(user && hasRole(user.role, ["operator"]));
+  const query = `
     SELECT e.id, e.title, e.event_date, e.start_time, e.end_time, e.timezone, e.status, e.description,
       (SELECT COUNT(*) FROM symposium_sessions ss WHERE ss.event_id = e.id) AS session_count
-    FROM events e ORDER BY e.event_date ASC
-  `).all();
+    FROM events e
+    ${canViewDrafts ? "" : "WHERE e.status = 'published'"}
+    ORDER BY e.event_date ASC
+  `;
+  const { results } = await db.prepare(query).all();
   return Response.json({ events: results });
 };
 
