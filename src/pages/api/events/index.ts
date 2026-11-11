@@ -20,13 +20,20 @@ export const POST: APIRoute = async ({ locals, request }) => {
   try { body = await request.json(); } catch { return Response.json({ error: "Invalid request body." }, { status: 400 }); }
   const title = String(body.title || "").trim();
   const eventDate = String(body.event_date || "");
-  if (!title || !/^\d{4}-\d{2}-\d{2}$/.test(eventDate)) return Response.json({ error: "A title and valid event_date are required." }, { status: 400 });
+  const startTime = String(body.start_time || "13:00");
+  const endTime = String(body.end_time || "15:30");
+  if (!title || !/^\d{4}-\d{2}-\d{2}$/.test(eventDate) ||
+      !/^([01]\d|2[0-3]):[0-5]\d$/.test(startTime) ||
+      !/^([01]\d|2[0-3]):[0-5]\d$/.test(endTime) || endTime <= startTime) {
+    return Response.json({ error: "Provide a title, valid date and times, and ensure end time is after start time." }, { status: 400 });
+  }
   const id = crypto.randomUUID();
   try {
-    await db.prepare("undefined").bind(id, title, eventDate, startTime, endTime).run();
+    await db.prepare("INSERT INTO events (id, title, event_date, start_time, end_time) VALUES (?, ?, ?, ?, ?)")
+      .bind(id, title, eventDate, startTime, endTime).run();
   } catch {
     return Response.json({ error: "An event already exists for this date or the data is invalid." }, { status: 409 });
   }
   await writeAudit(db, user.id, "create", "event", id);
-  return Response.json({ id, title, event_date: eventDate }, { status: 201 });
+  return Response.json({ id, title, event_date: eventDate, start_time: startTime, end_time: endTime }, { status: 201 });
 };
