@@ -10,7 +10,7 @@ export const GET: APIRoute = async ({ locals, request }) => {
   const { results } = await locals.runtime.env.DB.prepare(`
     SELECT p.id, p.session_id, p.display_name, p.affiliation, p.presentation_title, p.sort_order,
       m.id AS material_id, m.original_name AS material_name, m.content_type AS material_type,
-      l.url AS presentation_url
+      l.id AS link_id, l.url AS presentation_url
     FROM presenters p
     LEFT JOIN materials m ON m.presenter_id = p.id
     LEFT JOIN presentation_links l ON l.presenter_id = p.id
