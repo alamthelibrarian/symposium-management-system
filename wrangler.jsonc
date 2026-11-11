@@ -15,7 +15,7 @@
   "r2_buckets": [
     {
       "binding": "FILES",
-      "bucket_name": "symposium-management-files"
+      "bucket_name": "symposium-management-system"
     }
   ],
   "vars": {
@@ -34,7 +34,7 @@
       "r2_buckets": [
         {
           "binding": "FILES",
-          "bucket_name": "symposium-management-preview-files"
+          "bucket_name": "symposium-management-preview"
         }
       ],
       "vars": {
@@ -45,7 +45,7 @@
       "d1_databases": [
         {
           "binding": "DB",
-          "database_name": "symposium-management-production",
+          "database_name": "symposium-management-system",
           "database_id": "00000000-0000-0000-0000-000000000002",
           "migrations_dir": "migrations"
         }
@@ -53,7 +53,7 @@
       "r2_buckets": [
         {
           "binding": "FILES",
-          "bucket_name": "symposium-management-production-files"
+          "bucket_name": "symposium-management-system-files"
         }
       ],
       "vars": {
