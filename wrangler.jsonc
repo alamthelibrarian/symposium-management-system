@@ -20,5 +20,45 @@
   ],
   "vars": {
     "APP_NAME": "Symposium Management System"
+  },
+  "env": {
+    "preview": {
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "symposium-management-preview",
+          "database_id": "00000000-0000-0000-0000-000000000001",
+          "migrations_dir": "migrations"
+        }
+      ],
+      "r2_buckets": [
+        {
+          "binding": "FILES",
+          "bucket_name": "symposium-management-preview-files"
+        }
+      ],
+      "vars": {
+        "APP_NAME": "Symposium Management System · Preview"
+      }
+    },
+    "production": {
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "symposium-management-production",
+          "database_id": "00000000-0000-0000-0000-000000000002",
+          "migrations_dir": "migrations"
+        }
+      ],
+      "r2_buckets": [
+        {
+          "binding": "FILES",
+          "bucket_name": "symposium-management-production-files"
+        }
+      ],
+      "vars": {
+        "APP_NAME": "Symposium Management System"
+      }
+    }
   }
 }
