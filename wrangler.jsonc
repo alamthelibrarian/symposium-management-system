@@ -53,7 +53,7 @@
       "r2_buckets": [
         {
           "binding": "FILES",
-          "bucket_name": "symposium-management-system-files"
+          "bucket_name": "symposium-management-system"
         }
       ],
       "vars": {
