@@ -19,7 +19,7 @@ export const POST: APIRoute = async ({ locals, request }) => {
   const name = String(body.display_name || "").trim();
   const password = String(body.password || "");
   const role = String(body.role || "viewer");
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || name.length < 2 || password.length < 12 || !["administrator","operator","moderator","viewer"].includes(role)) {
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 254 || name.length < 2 || name.length > 120 || password.length < 12 || password.length > 256 || !["administrator","operator","moderator","viewer"].includes(role)) {
     return Response.json({ error: "Provide a valid email, display name, password (12+ characters), and role." }, { status: 400 });
   }
   const id = crypto.randomUUID();
