@@ -1,0 +1,50 @@
+---
+import { getSessionUser } from "../../lib/auth";
+export const prerender = false;
+const user = await getSessionUser(Astro.locals.runtime.env.DB, Astro.request);
+if (!user) return Astro.redirect("/login");
+const eventId = Astro.params.id || "";
+---
+<!doctype html>
+<html lang="id">
+<head><meta charset="utf-8" /><meta name="viewport" content="width=device-width,initial-scale=1" /><meta name="theme-color" content="#080d17" /><title>Projector display · Symposium</title></head>
+<body>
+<main>
+  <header><div class="brand">SYMPOSIUM <span>LIVE</span></div><div id="event-date" class="date">Loading event…</div></header>
+  <section class="center"><p id="phase" class="phase">OPENING</p><h1 id="title">Opening session</h1><p id="presenter" class="presenter">Symposium session</p><div id="clock" class="clock">10:00</div><div class="bar"><span id="progress"></span></div><p id="slot" class="slot">13:00–15:30 WIB</p></section>
+  <footer><span id="connection">Connecting to live timer…</span><button id="fullscreen">Enter fullscreen</button></footer>
+</main>
+<script define:vars={{eventId}}>
+const $=id=>document.getElementById(id);let eventData=null,sessionId=null,presenters=[],timer={phaseIndex:-1,currentIndex:-1,remaining:600,duration:600,running:false,endsAt:null};
+const phases=[{name:"Presentation"},{name:"Q&A"},{name:"Transition"}];
+async function get(url){const r=await fetch(url);const d=await r.json();if(!r.ok)throw new Error(d.error||"Request failed");return d}
+function remaining(){return timer.running&&timer.endsAt?Math.max(0,Math.ceil((timer.endsAt-Date.now())/1000)):Math.max(0,timer.remaining||0)}
+function format(s){return String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0")}
+function render(){
+ const seconds=remaining(),person=presenters[timer.currentIndex];
+ $("phase").textContent=timer.phaseIndex<0?"OPENING":timer.phaseIndex>2?"CLOSING":phases[timer.phaseIndex].name.toUpperCase();
+ $("title").textContent=person?.presentation_title||(timer.phaseIndex>2?"Closing session":"Opening session");
+ $("presenter").textContent=person?(person.display_name+(person.affiliation?" · "+person.affiliation:"")):"Symposium session";
+ $("clock").textContent=format(seconds);
+ $("progress").style.width=(timer.duration?Math.min(100,Math.max(0,(timer.duration-seconds)/timer.duration*100)):0)+"%";
+ $("clock").classList.toggle("urgent",seconds<=60);
+}
+async function refresh(){
+ const [ev,sess]=await Promise.all([get("/api/events"),get("/api/sessions?event_id="+encodeURIComponent(eventId))]);
+ eventData=ev.events.find(e=>e.id===eventId);if(!eventData)throw new Error("Event not found");
+ sessionId=sess.sessions[0]?.id;if(!sessionId)throw new Error("No session configured");
+ const people=await get("/api/presenters?session_id="+encodeURIComponent(sessionId));presenters=people.presenters||[];
+ const state=await get("/api/events/"+encodeURIComponent(eventId)+"/timer");if(state.state)timer={...timer,...state.state};
+ $("event-date").textContent=new Intl.DateTimeFormat("en-GB",{day:"2-digit",month:"long",year:"numeric",timeZone:"UTC"}).format(new Date(eventData.event_date+"T00:00:00Z"))+" · "+eventData.start_time+"–"+eventData.end_time+" WIB";
+ $("slot").textContent=eventData.title+" · "+(timer.currentIndex>=0?"Presentation "+(timer.currentIndex+1)+" of "+presenters.length:"Session in progress");
+ $("connection").textContent="Live · synced "+new Date().toLocaleTimeString("id-ID",{hour:"2-digit",minute:"2-digit",second:"2-digit"});
+ render();
+}
+$("fullscreen").addEventListener("click",async()=>{try{if(!document.fullscreenElement)await document.documentElement.requestFullscreen();else await document.exitFullscreen()}catch{$("connection").textContent="Fullscreen is not available in this browser"}});
+try{await refresh()}catch(e){$("connection").textContent=e.message}
+setInterval(async()=>{try{const state=await get("/api/events/"+encodeURIComponent(eventId)+"/timer");if(state.state)timer={...timer,...state.state};render();$("connection").textContent="Live · "+new Date().toLocaleTimeString("id-ID",{hour:"2-digit",minute:"2-digit",second:"2-digit"})}catch{$("connection").textContent="Connection interrupted · retrying"}},1500);
+</script>
+<style>
+:root{color-scheme:dark;--bg:#080d17;--text:#f1f5fa;--muted:#98a9bf;--accent:#53c7a5}*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 50% 0%,#163044 0,transparent 48%),var(--bg);color:var(--text);font:16px/1.5 Inter,ui-sans-serif,system-ui,sans-serif}main{min-height:100vh;display:flex;flex-direction:column;padding:30px clamp(24px,6vw,90px)}header,footer{display:flex;justify-content:space-between;align-items:center;gap:20px}.brand{font-weight:850;letter-spacing:2px;font-size:12px}.brand span{color:var(--accent);margin-left:8px}.date,.slot,footer{font-size:12px;color:var(--muted)}.center{width:min(1100px,100%);margin:auto;text-align:center;padding:50px 0}.phase{font-size:clamp(13px,1.5vw,18px);letter-spacing:4px;font-weight:800;color:var(--accent)}h1{font-size:clamp(34px,6vw,76px);line-height:1.1;letter-spacing:-2px;margin:22px auto 10px;max-width:1050px}.presenter{font-size:clamp(15px,2vw,22px);color:var(--muted);margin:0 auto}.clock{font-size:clamp(100px,19vw,230px);font-weight:850;line-height:1.1;letter-spacing:-8px;font-variant-numeric:tabular-nums;margin:35px 0 25px}.clock.urgent{color:#ffb46b}.bar{height:8px;max-width:650px;margin:auto;background:#243146;border-radius:20px;overflow:hidden}.bar span{display:block;height:100%;width:0;background:var(--accent);transition:width .3s}.slot{margin-top:22px}footer{border-top:1px solid #ffffff18;padding-top:20px}button{background:#17243a;border:1px solid #30425c;border-radius:8px;padding:9px 13px;color:var(--text);font:inherit;font-size:11px;cursor:pointer}@media(max-width:600px){main{padding:20px}.clock{letter-spacing:-4px}header{align-items:flex-start;flex-direction:column}}
+</style>
+</body></html>
