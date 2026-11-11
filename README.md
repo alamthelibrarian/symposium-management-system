@@ -29,7 +29,7 @@ A focused web application for organizing symposium presentation sequences, manag
 - HTTPS presentation links, including Canva links.
 - D1-backed timer state API and synchronized workspace/projector timer.
 - Fullscreen projector display, selectable by `session_id`.
-- GitHub Actions build workflow.
+- GitHub Actions workflow that applies D1 migrations locally, runs Astro type checks, and builds the application.
 
 ## Routes and APIs
 
@@ -95,7 +95,7 @@ For deployment:
 1. Create a Cloudflare Pages project connected to this GitHub repository.
 2. Set the build command to `npm run build` and output directory to `dist`.
 3. Create the D1 database and R2 bucket using the names above.
-4. Replace the D1 `database_id` placeholder in `wrangler.jsonc` with the actual database ID, or configure the matching binding in Pages settings.
+4. Replace the all-zero D1 `database_id` placeholder in `wrangler.jsonc` with the actual database ID before deployment, or configure the matching binding in Pages settings. The placeholder is only for local development and must never be used for a live deployment.
 5. Ensure the Pages production environment has D1 binding `DB`, R2 binding `FILES`, and secret `BOOTSTRAP_SECRET`.
 6. Apply the migrations to the intended database:
    `npx wrangler d1 migrations apply symposium-management-system --remote`.
