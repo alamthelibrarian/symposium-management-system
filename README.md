@@ -38,12 +38,12 @@ A focused web application for organizing symposium presentation sequences, manag
 |---|---|
 | `/` | Public event overview |
 | `/login` | Sign-in |
-| `/workspace` | Protected operator/moderator workspace |
+| `/workspace` | Protected operator/moderator workspace |\n| `/admin/schedule` | Event and session administration (administrator/operator) |\n| `/admin/users` | User and role administration (administrator only) |
 | `/display/:eventId` | Fullscreen projector view |
 | `GET /api/health` | Application and D1 health |
 | `GET /api/events` | List event dates |
 | `POST /api/events` | Create an event (operator+) |
-| `/api/sessions` | Read/create event sessions |
+| `/api/sessions` | Read/create event sessions |\n| `/api/sessions/:id` | Update/delete a session |
 | `/api/presenters` | Read/create presenters |
 | `/api/presenters/:id` | Update/delete a presenter |
 | `/api/materials` | Upload a PDF/PPTX file to R2 |
