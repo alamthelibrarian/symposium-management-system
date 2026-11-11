@@ -8,7 +8,7 @@
     {
       "binding": "DB",
       "database_name": "symposium-management-system",
-      "database_id": "00000000-0000-0000-0000-000000000000",
+      "database_id": "9bcfc86d-5215-4fa6-b48b-346a14eb141e",
       "migrations_dir": "migrations"
     }
   ],
@@ -27,7 +27,7 @@
         {
           "binding": "DB",
           "database_name": "symposium-management-preview",
-          "database_id": "00000000-0000-0000-0000-000000000001",
+          "database_id": "4cd54fc2-bea7-47d1-825b-dce0ebd78f53",
           "migrations_dir": "migrations"
         }
       ],
@@ -46,7 +46,7 @@
         {
           "binding": "DB",
           "database_name": "symposium-management-system",
-          "database_id": "00000000-0000-0000-0000-000000000002",
+          "database_id": "9bcfc86d-5215-4fa6-b48b-346a14eb141e",
           "migrations_dir": "migrations"
         }
       ],
