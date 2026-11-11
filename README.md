@@ -22,7 +22,7 @@ A focused web application for organizing symposium presentation sequences, manag
 - D1 schema and seed data for 12 November, 26 November, and 3 December 2026.
 - Public event-date listing (published events only) and health APIs.
 - Login, logout, session lookup, persistent throttling after 8 unsuccessful attempts per email or 30 per source IP within a 15-minute window, and a race-safe one-time first-administrator bootstrap.
-- Administrator user-management screen: create accounts, assign roles, and activate/deactivate accounts.
+- Administrator user-management screen: create accounts, assign roles, and activate/deactivate accounts, with protection against removing the last active administrator.
 - Schedule administration screen: create, edit, and delete events/sessions according to role permissions.
 - Presenter management and editing in the operator workspace.
 - PDF/PPTX upload to R2 (50 MB limit), filename sanitization, basic content-signature checks, and authenticated material delivery. PPTX validation checks the ZIP signature, not the full internal OOXML package structure.
