@@ -68,8 +68,8 @@ export async function getSessionUser(db: D1Database, request: Request) {
   return row || null;
 }
 
-export function sessionCookie(token: string, secure: boolean): string {
-  return `${COOKIE_NAME}=${encodeURIComponent(token)}; HttpOnly; Secure=${secure ? "true" : "false"}; SameSite=Lax; Path=/; Max-Age=604800`.replace("; Secure=true", "; Secure").replace("; Secure=false", "");
+export function sessionCookie(token: string, secure: boolean, ttlDays = 7): string {
+  return `${COOKIE_NAME}=${encodeURIComponent(token)}; HttpOnly; ${secure ? "Secure; " : ""}SameSite=Lax; Path=/; Max-Age=${Math.max(1, ttlDays) * 86400}`;
 }
 
 export function clearSessionCookie(secure: boolean): string {
