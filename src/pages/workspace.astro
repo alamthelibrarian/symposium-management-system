@@ -1,0 +1,21 @@
+---
+import { getSessionUser } from "../lib/auth";
+export const prerender = false;
+const user = await getSessionUser(Astro.locals.runtime.env.DB, Astro.request);
+if (!user) return Astro.redirect("/login");
+---
+<!doctype html>
+<html lang="id">
+  <head><meta charset="utf-8" /><meta name="viewport" content="width=device-width,initial-scale=1" /><title>Workspace · Symposium Management System</title></head>
+  <body>
+    <header><a href="/">SMS.</a><div><strong>Workspace</strong><small>{user.display_name} · {user.role}</small></div><button id="logout">Sign out</button></header>
+    <main><p class="eyebrow">SESSION OPERATIONS</p><h1>Symposium workspace</h1><p>Signed in successfully. Event editing, presenter sequencing, materials, and synchronized timer controls will be added in the next implementation milestone.</p><section id="events">Loading event data…</section></main>
+    <script>
+      fetch("/api/events").then(r=>r.json()).then(({events})=>{document.querySelector("#events").innerHTML=events.map(e=>`<article><b>${e.title}</b><span>${e.event_date} · ${e.start_time}–${e.end_time}</span></article>`).join("")});
+      document.querySelector("#logout").addEventListener("click",async()=>{await fetch("/api/auth/logout",{method:"POST"});location.href="/";});
+    </script>
+    <style>
+      :root{color-scheme:dark;--bg:#0b1120;--panel:#131e30;--line:#27364d;--muted:#9aabc2;--text:#eef4fb;--accent:#53c7a5}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:15px/1.6 system-ui,sans-serif}header{display:flex;align-items:center;gap:15px;padding:18px max(22px,calc((100% - 1000px)/2));border-bottom:1px solid var(--line)}header>a{color:var(--accent);font-weight:850;text-decoration:none}header div{flex:1}header strong,header small{display:block}header small{color:var(--muted);font-size:11px}button{background:var(--panel);color:var(--text);border:1px solid var(--line);padding:8px 13px;border-radius:8px}main{max-width:1000px;margin:55px auto;padding:0 22px}.eyebrow{color:var(--accent);font-size:11px;letter-spacing:2px}h1{font-size:36px}main>p:not(.eyebrow){color:var(--muted);max-width:620px}article{display:flex;justify-content:space-between;gap:15px;padding:17px;margin:10px 0;background:var(--panel);border:1px solid var(--line);border-radius:10px}article span{color:var(--muted);font-size:12px}
+    </style>
+  </body>
+</html>
