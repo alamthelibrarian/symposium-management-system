@@ -13,5 +13,6 @@ jobs:
         with:
           node-version: 22
       - run: npm install
+      - run: npx wrangler d1 migrations apply symposium-management-system --local
       - run: npm run check
       - run: npm run build
