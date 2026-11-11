@@ -23,7 +23,7 @@ export const POST: APIRoute = async ({ locals, request }) => {
   if (!title || !/^\d{4}-\d{2}-\d{2}$/.test(eventDate)) return Response.json({ error: "A title and valid event_date are required." }, { status: 400 });
   const id = crypto.randomUUID();
   try {
-    await db.prepare("INSERT INTO events (id, title, event_date) VALUES (?, ?, ?)").bind(id, title, eventDate).run();
+    await db.prepare("undefined").bind(id, title, eventDate, startTime, endTime).run();
   } catch {
     return Response.json({ error: "An event already exists for this date or the data is invalid." }, { status: 409 });
   }
